@@ -1,3 +1,4 @@
+import threading
 from urllib.request import urlopen
 from bs4 import BeautifulSoup
 from idna import unicode
@@ -16,15 +17,22 @@ class Spider:
     crawled_file = ''
     queue = set()
     crawled = set()
+    site_file_lines_count = 1
+    parties_vocab = {}
+    parties_locks = {}
 
-    def __init__(self, project_name, base_url, domain_name):
+    def __init__(self, project_name, base_url, domain_name, lines_count, parties_vocab):
         Spider.project_name = project_name
         Spider.base_url = base_url
         Spider.domain_name = domain_name
         Spider.queue_file = Spider.project_name + '/queue.txt'
         Spider.crawled_file = Spider.project_name + '/crawled.txt'
+        Spider.site_file_lines_count = lines_count
+        Spider.parties_vocab = parties_vocab
         self.boot()
         self.crawl_page('First spider', Spider.base_url)
+        for party in parties_vocab:
+            Spider.parties_locks[party] = threading.Lock()
 
     # Creates directory and files for project on first run and starts the spider
     @staticmethod
@@ -54,7 +62,9 @@ class Spider:
             if 'text/html' in response.getheader('Content-Type'):
                 html_bytes = response.read()
                 html_string = html_bytes.decode("utf-8")
-                Spider.save_article(html_string)
+                # only for ynet:
+                if 'articles' in page_url:
+                    Spider.save_article(page_url)
             finder = LinkFinder(Spider.base_url, page_url)
             finder.feed(html_string)
         except Exception as e:
@@ -68,6 +78,7 @@ class Spider:
         for url in links:
             if (url in Spider.queue) or (url in Spider.crawled):
                 continue
+            # print(get_domain_name(url))
             if Spider.domain_name != get_domain_name(url):
                 continue
             Spider.queue.add(url)
@@ -79,26 +90,49 @@ class Spider:
 
     @staticmethod
     def save_article(url):
-        # soup = BeautifulSoup(html_string, 'html.parser')
-        # head_tag = soup.head
-        # print(head_tag.contents)
-        # if head_tag[0] == "האסירים":
-
         article = Article(url)
         article.download()
         article.parse()
-        title = article.title + article.meta_description
-        print(article.title)
-        print(article.meta_description)
-        parties_vocab = {}
-        news_parties_files = {}
-        if article.text == "":
-            return
-        for party in parties_vocab:
-            if any(word in title for word in parties_vocab[party]):
-                with open(news_parties_files[party + " " + Spider.project_name]) as f:
-                    f.write('<link>' + url + '</link>\n')
-                    f.write(article.text)
+        summary = article.title + " " + article.meta_description
+        # TODO: decide on which period of time wer'e working
+        # if article.text == "" or (article.publish_date.year < 2019 and article.publish_date.month < 10) or (
+        #         article.publish_date.year == 2019 and article.publish_date.day > 9):
+        #     return
+        for party in Spider.parties_vocab:
+            for word in Spider.parties_vocab[party]:
+                if word in summary:
+                    Spider.parties_locks[party].acquire()
+                    Spider.save_article_to_party_file(article.text, article.title, party)
+                    Spider.parties_locks[party].release()
+                    break
 
-        with open("article.txt", "w") as f:
-            f.write(article.text)
+    @staticmethod
+    def save_article_to_site_file(line_number, article_text, article_title):
+        text = []
+        temp_text = ['<article>', article_title]
+        temp_text.extend(str.split(article_text, '\n'))
+        for line in temp_text:
+            line.replace('\n', '')
+            if not line == "":
+                text.append(line)
+        text.append('</article>')
+        with open(Spider.project_name + '\\articles.txt', 'a+', encoding='utf-8') as f:
+            f.seek(line_number)
+            for line in text:
+                f.write(line + '\n')
+        Spider.site_file_lines_count += len(text)
+        return len(text)
+
+    @staticmethod
+    def save_article_to_party_file(article_text, article_title, party):
+        text = []
+        temp_text = [article_title]
+        temp_text.extend(str.split(article_text, '\n'))
+        for line in temp_text:
+            line.replace('\n', '')
+            if not line == "":
+                text.append(line)
+        # text.append('</article>')
+        with open(Spider.project_name + '\\' + party + '.txt', 'a+', encoding='utf-8') as f:
+            for line in text:
+                f.write(line + '\n')

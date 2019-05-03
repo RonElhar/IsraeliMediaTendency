@@ -5,7 +5,15 @@ from urllib.parse import urlparse
 def get_domain_name(url):
     try:
         results = get_sub_domain_name(url).split('.')
-        return results[-2] + '.' + results[-1]
+        # print(results)
+        # if len(results) == 1:
+        # print(url)
+        if len(results) > 3:
+            # print(results[1])
+            return results[1]
+        else:
+            # print(results[0])
+            return results[0]
     except:
         return ''
 
