@@ -7,7 +7,7 @@ from NewsSpider.general import *
 
 class Crawler:
 
-    def __init__(self, project_name, homepage, threads_num, parties_vocab):
+    def __init__(self, project_name, homepage, threads_num, parties_vocab, published_from):
         self.PROJECT_NAME = project_name
         self.HOMEPAGE = homepage
         self.DOMAIN_NAME = get_domain_name(self.HOMEPAGE)
@@ -15,7 +15,7 @@ class Crawler:
         self.CRAWLED_FILE = self.PROJECT_NAME + '/crawled.txt'
         self.NUMBER_OF_THREADS = threads_num
         self.queue = Queue()
-        Spider(self.PROJECT_NAME, self.HOMEPAGE, self.DOMAIN_NAME, 32, parties_vocab)
+        Spider(self.PROJECT_NAME, self.HOMEPAGE, self.DOMAIN_NAME, threads_num, parties_vocab, published_from)
         self.create_workers()
         self.crawl()
 

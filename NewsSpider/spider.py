@@ -1,12 +1,13 @@
 import threading
+from datetime import date
 from urllib.request import urlopen
-from bs4 import BeautifulSoup
 from idna import unicode
 from newspaper import Article
 
 from NewsSpider.link_finder import LinkFinder
 from NewsSpider.domain import *
 from NewsSpider.general import *
+from NewsSpider.news_scraper import NewsScraperBS
 
 
 class Spider:
@@ -18,10 +19,11 @@ class Spider:
     queue = set()
     crawled = set()
     site_file_lines_count = 1
+    published_date = None
     parties_vocab = {}
     parties_locks = {}
 
-    def __init__(self, project_name, base_url, domain_name, lines_count, parties_vocab):
+    def __init__(self, project_name, base_url, domain_name, lines_count, parties_vocab, published_date=date(18, 12, 1)):
         Spider.project_name = project_name
         Spider.base_url = base_url
         Spider.domain_name = domain_name
@@ -29,6 +31,7 @@ class Spider:
         Spider.crawled_file = Spider.project_name + '/crawled.txt'
         Spider.site_file_lines_count = lines_count
         Spider.parties_vocab = parties_vocab
+        Spider.published_date = published_date
         self.boot()
         self.crawl_page('First spider', Spider.base_url)
         for party in parties_vocab:
@@ -63,14 +66,16 @@ class Spider:
                 html_bytes = response.read()
                 html_string = html_bytes.decode("utf-8")
                 # only for ynet:
-                if 'articles' in page_url:
-                    Spider.save_article(page_url)
-            finder = LinkFinder(Spider.base_url, page_url)
-            finder.feed(html_string)
+                # finder = LinkFinder(Spider.base_url, page_url)
+            finder = NewsScraperBS(html_string, Spider.domain_name, Spider.base_url)
+            if 'articles' in page_url and finder.is_relevant_article(Spider.published_date):  # frome_date, to_date
+                Spider.save_article(page_url)
+                # finder.feed(html_string)
         except Exception as e:
             print(str(e))
             return set()
-        return finder.page_links()
+        links = finder.find_links()
+        return links
 
     # Saves queue data to project files
     @staticmethod
