@@ -46,7 +46,7 @@ def file_to_set(file_name):
     except RecursionError as re:
         print(re)
         print('\n\n\n\n\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~starting over~~~~~~~~~~~~~~~~~~~~~~~\n\n\n\n')
-        exec(open("C:\\Users\\USER\\Desktop\\IsraeliMediaTendency\\main.py", encoding="utf8").read())
+        exec(open("C:\\Users\\ronel\\Desktop\\IsraeliMediaTendency\\main.py", encoding="utf8").read())
     return results
 
 
