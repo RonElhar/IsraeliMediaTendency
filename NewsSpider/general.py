@@ -38,15 +38,10 @@ def delete_file_contents(path):
 # Read a file and convert each line to set items
 def file_to_set(file_name):
     results = set()
-    try:
-        with open(file_name, 'rt', encoding='utf-8') as f:
-            for line in f:
-                line_to_write = line.replace('\n', '')
-                results.add(line_to_write)
-    except RecursionError as re:
-        print(re)
-        print('\n\n\n\n\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~starting over~~~~~~~~~~~~~~~~~~~~~~~\n\n\n\n')
-        exec(open("C:\\Users\\ronel\\Desktop\\IsraeliMediaTendency\\main.py", encoding="utf8").read())
+    with open(file_name, 'rt', encoding='utf-8') as f:
+        for line in f:
+            line_to_write = line.replace('\n', '')
+            results.add(line_to_write)
     return results
 
 

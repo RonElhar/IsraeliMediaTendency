@@ -7,15 +7,17 @@ from NewsSpider.general import *
 
 class Crawler:
 
-    def __init__(self, project_name, homepage, threads_num, parties_vocab, published_from):
+    def __init__(self, project_name, homepage, threads_num, parties_vocab, published_from, published_until):
         self.PROJECT_NAME = project_name
         self.HOMEPAGE = homepage
         self.DOMAIN_NAME = get_domain_name(self.HOMEPAGE)
         self.QUEUE_FILE = self.PROJECT_NAME + '/queue.txt'
         self.CRAWLED_FILE = self.PROJECT_NAME + '/crawled.txt'
+        self.SAVED_FILE = self.PROJECT_NAME + '/saved.txt'
         self.NUMBER_OF_THREADS = threads_num
         self.queue = Queue()
-        Spider(self.PROJECT_NAME, self.HOMEPAGE, self.DOMAIN_NAME, threads_num, parties_vocab, published_from)
+        Spider(self.PROJECT_NAME, self.HOMEPAGE, self.DOMAIN_NAME, threads_num, parties_vocab, published_from,
+               published_until)
         self.create_workers()
         self.crawl()
 
@@ -34,8 +36,8 @@ class Crawler:
             self.queue.task_done()
 
     # Each queued link is a new job
-    def create_jobs(self):
-        for link in file_to_set(self.QUEUE_FILE):
+    def create_jobs(self, queue_links):
+        for link in queue_links:
             self.queue.put(link)
             self.queue.join()
             self.crawl()
@@ -43,6 +45,9 @@ class Crawler:
     # Check if there are items in the queue, if so crawl them
     def crawl(self):
         queued_links = file_to_set(self.QUEUE_FILE)
-        if len(queued_links) > 0:
+        while len(queued_links) > 0:
             print(str(len(queued_links)) + ' links in the queue')
-            self.create_jobs()
+            for link in queued_links:
+                self.queue.put(link)
+                self.queue.join()
+            queued_links = file_to_set(self.QUEUE_FILE)

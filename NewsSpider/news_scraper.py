@@ -14,8 +14,8 @@ class NewsScraperBS(BeautifulSoup):
 
     # <meta property="og:published_time" content="17:51 , 03.05.19">
     # <meta property="og:type" content="article">
-    def is_relevant_article(self, from_date=(18, 12, 1), to_date=date(19, 5, 4)):
-        return self.is_relevant_ynet(True, from_date, to_date)
+    def is_relevant_article(self, from_date=(18, 12, 1), until_date=date(19, 5, 4)):
+        return self.is_relevant_ynet(True, from_date, until_date)
 
     def find_links(self):
         if self.domain_name == 'ynet':
@@ -29,7 +29,8 @@ class NewsScraperBS(BeautifulSoup):
         if meta_published is None:
             return False
         if filter_by_date and not self.is_published_between_ynet(meta_published, from_date, to_date):
-            return True
+            return False
+        return True
 
     def find_links_ynet(self):
         meta_category = self.find('meta', attrs={'name': re.compile("^vr:category")})
@@ -65,10 +66,10 @@ class NewsScraperBS(BeautifulSoup):
         published = date(int(date_str[2]), int(date_str[1]), int(date_str[0]))
         return from_date < published
 
-    def is_published_between_ynet(self, meta_published, from_date, to_date):
+    def is_published_between_ynet(self, meta_published, from_date, until_date):
         date_str = str.split(str.split(meta_published.get("content"), ',')[1], '.')
         published = date(int(date_str[2]), int(date_str[1]), int(date_str[0]))
-        return from_date < published and published < to_date
+        return from_date < published < until_date
 
 # class YnetScraper(NewsScraperBS)
 # def is_published_after_ynet(from_date):

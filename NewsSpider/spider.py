@@ -16,22 +16,27 @@ class Spider:
     domain_name = ''
     queue_file = ''
     crawled_file = ''
+    saved_file = ''
     queue = set()
     crawled = set()
-    site_file_lines_count = 1
-    published_date = None
+    saved = set()
+    published_from = None
+    published_until = None
     parties_vocab = {}
     parties_locks = {}
 
-    def __init__(self, project_name, base_url, domain_name, lines_count, parties_vocab, published_date=date(18, 12, 1)):
+    def __init__(self, project_name, base_url, domain_name, lines_count, parties_vocab, published_from=date(18, 12, 1),
+                 published_until=date(19, 5, 4)):
         Spider.project_name = project_name
         Spider.base_url = base_url
         Spider.domain_name = domain_name
         Spider.queue_file = Spider.project_name + '/queue.txt'
         Spider.crawled_file = Spider.project_name + '/crawled.txt'
+        Spider.saved_file = Spider.project_name + '/saved.txt'
         Spider.site_file_lines_count = lines_count
         Spider.parties_vocab = parties_vocab
-        Spider.published_date = published_date
+        Spider.published_from = published_from
+        Spider.published_until = published_until
         self.boot()
         self.crawl_page('First spider', Spider.base_url)
         for party in parties_vocab:
@@ -50,7 +55,8 @@ class Spider:
     def crawl_page(thread_name, page_url):
         if page_url not in Spider.crawled:
             print(thread_name + ' now crawling ' + page_url)
-            print('Queue ' + str(len(Spider.queue)) + ' | Crawled  ' + str(len(Spider.crawled)))
+            print('Queue ' + str(len(Spider.queue)) + ' | Crawled  ' + str(len(Spider.crawled)) + ' | Saved ' + str(
+                len(Spider.saved)))
             Spider.add_links_to_queue(Spider.gather_links(page_url))
             Spider.queue.remove(page_url)
             Spider.crawled.add(page_url)
@@ -68,7 +74,7 @@ class Spider:
                 # only for ynet:
                 # finder = LinkFinder(Spider.base_url, page_url)
             finder = NewsScraperBS(html_string, Spider.domain_name, Spider.base_url)
-            if 'articles' in page_url and finder.is_relevant_article(Spider.published_date):  # frome_date, to_date
+            if 'articles' in page_url and finder.is_relevant_article(Spider.published_from,Spider.published_until):  # frome_date, to_date
                 Spider.save_article(page_url)
                 # finder.feed(html_string)
         except Exception as e:
@@ -92,6 +98,7 @@ class Spider:
     def update_files():
         set_to_file(Spider.queue, Spider.queue_file)
         set_to_file(Spider.crawled, Spider.crawled_file)
+        set_to_file(Spider.saved, Spider.saved_file)
 
     @staticmethod
     def save_article(url):
@@ -109,24 +116,8 @@ class Spider:
                     Spider.parties_locks[party].acquire()
                     Spider.save_article_to_party_file(article.text, article.title, party)
                     Spider.parties_locks[party].release()
+                    Spider.saved.add(url)
                     break
-
-    @staticmethod
-    def save_article_to_site_file(line_number, article_text, article_title):
-        text = []
-        temp_text = ['<article>', article_title]
-        temp_text.extend(str.split(article_text, '\n'))
-        for line in temp_text:
-            line.replace('\n', '')
-            if not line == "":
-                text.append(line)
-        text.append('</article>')
-        with open(Spider.project_name + '\\articles.txt', 'a+', encoding='utf-8') as f:
-            f.seek(line_number)
-            for line in text:
-                f.write(line + '\n')
-        Spider.site_file_lines_count += len(text)
-        return len(text)
 
     @staticmethod
     def save_article_to_party_file(article_text, article_title, party):
@@ -137,7 +128,6 @@ class Spider:
             line.replace('\n', '')
             if not line == "":
                 text.append(line)
-        # text.append('</article>')
         with open(Spider.project_name + '\\' + party + '.txt', 'a+', encoding='utf-8') as f:
             for line in text:
                 f.write(line + '\n')
