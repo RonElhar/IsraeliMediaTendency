@@ -1,13 +1,9 @@
 import threading
-from datetime import date
 from urllib.request import urlopen
-from idna import unicode
 from newspaper import Article
-
-from NewsSpider.link_finder import LinkFinder
 from NewsSpider.domain import *
 from NewsSpider.general import *
-from NewsSpider.news_scraper import NewsScraperBS
+from NewsSpider.news_scraper import NewsScraperGenerator
 
 
 class Spider:
@@ -22,11 +18,11 @@ class Spider:
     saved = set()
     published_from = None
     published_until = None
-    parties_vocab = {}
+    subjects_vocab = {}
     parties_locks = {}
 
-    def __init__(self, project_name, base_url, domain_name, lines_count, parties_vocab, published_from=date(18, 12, 1),
-                 published_until=date(19, 5, 4)):
+    def __init__(self, project_name, base_url, domain_name, lines_count, parties_vocab, published_from,
+                 published_until):
         Spider.project_name = project_name
         Spider.base_url = base_url
         Spider.domain_name = domain_name
@@ -34,7 +30,7 @@ class Spider:
         Spider.crawled_file = Spider.project_name + '/crawled.txt'
         Spider.saved_file = Spider.project_name + '/saved.txt'
         Spider.site_file_lines_count = lines_count
-        Spider.parties_vocab = parties_vocab
+        Spider.subjects_vocab = parties_vocab
         Spider.published_from = published_from
         Spider.published_until = published_until
         self.boot()
@@ -49,6 +45,7 @@ class Spider:
         create_data_files(Spider.project_name, Spider.base_url)
         Spider.queue = file_to_set(Spider.queue_file)
         Spider.crawled = file_to_set(Spider.crawled_file)
+        Spider.saved = file_to_set(Spider.saved_file)
 
     # Updates user display, fills queue and updates files
     @staticmethod
@@ -71,16 +68,15 @@ class Spider:
             if 'text/html' in response.getheader('Content-Type'):
                 html_bytes = response.read()
                 html_string = html_bytes.decode("utf-8")
-                # only for ynet:
-                # finder = LinkFinder(Spider.base_url, page_url)
-            finder = NewsScraperBS(html_string, Spider.domain_name, Spider.base_url)
-            if 'articles' in page_url and finder.is_relevant_article(Spider.published_from,Spider.published_until):  # frome_date, to_date
+            scraper = NewsScraperGenerator(html_string, Spider.domain_name, Spider.base_url).generate()
+            # finder = NewsScraperBS(html_string, Spider.domain_name, Spider.base_url)
+            if 'articles' in page_url and scraper.is_relevant_article(Spider.published_from,
+                                                                      Spider.published_until):
                 Spider.save_article(page_url)
-                # finder.feed(html_string)
         except Exception as e:
             print(str(e))
             return set()
-        links = finder.find_links()
+        links = scraper.find_links()
         return links
 
     # Saves queue data to project files
@@ -99,35 +95,32 @@ class Spider:
         set_to_file(Spider.queue, Spider.queue_file)
         set_to_file(Spider.crawled, Spider.crawled_file)
         set_to_file(Spider.saved, Spider.saved_file)
-
+    # save article - saves the article to the appropriate file if it's relevant to the party
     @staticmethod
     def save_article(url):
         article = Article(url)
         article.download()
         article.parse()
         summary = article.title + " " + article.meta_description
-        # TODO: decide on which period of time wer'e working
-        # if article.text == "" or (article.publish_date.year < 2019 and article.publish_date.month < 10) or (
-        #         article.publish_date.year == 2019 and article.publish_date.day > 9):
-        #     return
-        for party in Spider.parties_vocab:
-            for word in Spider.parties_vocab[party]:
+        for subject in Spider.subjects_vocab:
+            for word in Spider.subjects_vocab[subject]:
                 if word in summary:
-                    Spider.parties_locks[party].acquire()
-                    Spider.save_article_to_party_file(article.text, article.title, party)
-                    Spider.parties_locks[party].release()
+                    Spider.parties_locks[subject].acquire()
+                    Spider.save_article_to_subject_file(article, subject)
+                    Spider.parties_locks[subject].release()
                     Spider.saved.add(url)
                     break
-
+    # writes the article to a file
     @staticmethod
-    def save_article_to_party_file(article_text, article_title, party):
-        text = []
-        temp_text = [article_title]
-        temp_text.extend(str.split(article_text, '\n'))
-        for line in temp_text:
+    def save_article_to_subject_file(article, subject):
+
+        file_lines = [article.title]
+        article_txt = str.split(article.text, '\n')
+        for line in article_txt:
             line.replace('\n', '')
             if not line == "":
-                text.append(line)
-        with open(Spider.project_name + '\\' + party + '.txt', 'a+', encoding='utf-8') as f:
-            for line in text:
-                f.write(line + '\n')
+                file_lines.append(line + '\n')
+        # file_lines.append('</article>\n')
+        with open(Spider.project_name + '\\' + subject + '.txt', 'a+', encoding='utf-8') as f:
+            for line in file_lines:
+                f.write(line)

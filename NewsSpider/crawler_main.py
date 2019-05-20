@@ -36,12 +36,6 @@ class Crawler:
             self.queue.task_done()
 
     # Each queued link is a new job
-    def create_jobs(self, queue_links):
-        for link in queue_links:
-            self.queue.put(link)
-            self.queue.join()
-            self.crawl()
-
     # Check if there are items in the queue, if so crawl them
     def crawl(self):
         queued_links = file_to_set(self.QUEUE_FILE)

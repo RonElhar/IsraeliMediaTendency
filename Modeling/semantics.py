@@ -1,45 +1,45 @@
+import multiprocessing
+from time import time
+import numpy as np
+
 from gensim import utils
 from gensim.models import Word2Vec
 import os
 
 
-class Semantics:
-    def __init__(self, file_path, model_name):
-        self.path = file_path
-        self.sentences = []
-        self.model_name = model_name
-
-    def parse_articles(self):
-        i = 0
-        files_list = os.listdir(self.path)
-        for file in files_list:
-            with open(self.path + '\\' + file, 'r', encoding='utf-8') as f:
-                lines = f.readlines()
-                for line in lines:
-                    terms = utils.simple_preprocess(line)
-                    self.sentences.append(terms)
-
-    def start(self):
-        # train model
-        model = Word2Vec(self.sentences, size=150, window=10, min_count=2, workers=10)
-        model.train(self.sentences, total_examples=len(self.sentences), epochs=10)
-        # save model
-        model.save(self.model_name + '.bin')
-
-    def test(self):
-        # load model
-        new_model = Word2Vec.load(self.model_name + '.bin')
-        # access vector for one word
-        w1 = 'נתניהו'
-        similar = new_model.wv.most_similar(positive=w1)
-        print(similar)
+# Pre processing of articles, in order to make them fit Word2Vec model input
+def parse_articles(path):
+    i = 0
+    sentences = []
+    files_list = os.listdir(path)
+    for file in files_list:
+        with open(path + '\\' + file, 'r', encoding='utf-8') as f:
+            lines = f.readlines()
+            for line in lines:
+                terms = utils.simple_preprocess(line)
+                sentences.append(terms)
+    return sentences
 
 
-# terms = gensim.utils.simple_preprocess(text)
-# tokens = gensim.utils.simple_tokenize(text)
-# print terms
-sem = Semantics("C:\\Users\\USER\\Desktop\\IsraeliMediaTendency\\ynet", "ynet")
-sem.test()
-# sem.read_corpus()
-# sem.parse_articles()
-# sem.start()
+# Train Word2Vec model, save it to bin file
+def train(model_name, sentences):
+    # train model
+    model = Word2Vec(size=200, window=5, min_count=2, workers=16)
+    t = time()
+    model.build_vocab(sentences)
+    print('Time to build vocab: {} mins'.format(round((time() - t) / 60, 2)))
+    model.train(sentences, total_examples=len(sentences), epochs=20)
+    # save model
+    model.save(model_name)
+
+
+# test prediction of model for one word
+def test(model_name, target_word):
+    # load model
+    new_model = Word2Vec.load(model_name + '.bin')
+    similar = new_model.wv.most_similar(positive=target_word)
+    print(similar)
+
+
+sents = parse_articles('C:\\Users\\ronel\\Desktop\\IsraeliMediaTendency\\ynet')
+train('ynetAllTime', sents)
