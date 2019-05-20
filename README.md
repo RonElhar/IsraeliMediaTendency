@@ -18,4 +18,5 @@ OS: Windows 10 x64
 Credits:
 * Spider code repository shared by buckyroberts at https://github.com/buckyroberts/Spider 
 * Gensim https://radimrehurek.com/gensim/index.html
+* Beautiful Soup https://www.crummy.com/software/BeautifulSoup/bs4/doc/
 * Newspaper3k https://newspaper.readthedocs.io/en/latest/
