@@ -1,4 +1,4 @@
-# IsraeliMediaTendency
+# IsraeliMediaTendency ![Alt text](https://banner2.kisspng.com/20180326/ebw/kisspng-capernaum-t-shirt-star-of-david-judaism-jewish-sym-judaism-5ab8ca8ae2dac0.5129121615220599149292.jpg "Title")
 
 A tool for crawling Israeli news websites, storing news articles and performing sentiment analysis on the data.
 
