@@ -1,4 +1,4 @@
-# IsraeliMediaTendency U+2721
+# IsraeliMediaTendency
 
 A tool for crawling Israeli news websites, storing news articles and performing sentiment analysis on the data.
 
