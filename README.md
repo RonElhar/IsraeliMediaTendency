@@ -14,7 +14,8 @@ Requirments:
   * gensim
 
 OS: Windows 10 x64
- 
-Spider code repository shared by buckyroberts at https://github.com/buckyroberts/Spider 
-Gensim https://radimrehurek.com/gensim/index.html
-Newspaper3k https://newspaper.readthedocs.io/en/latest/
+
+Credits:
+*Spider code repository shared by buckyroberts at https://github.com/buckyroberts/Spider 
+*Gensim https://radimrehurek.com/gensim/index.html
+*Newspaper3k https://newspaper.readthedocs.io/en/latest/
