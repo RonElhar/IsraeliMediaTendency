@@ -1,6 +1,6 @@
-# IsraeliMediaTendency
+# IsraeliMediaTendency U+2721
 
-A tool for crawling Israeli websites, storing news articles and performing sentiment analysis.
+A tool for crawling Israeli news websites, storing news articles and performing sentiment analysis on the data.
 
 - Contains a GUI (Run frontend.py) showing outputs for Analysis of articles from ynet website, in context of Israel's 2019 Elections
 
