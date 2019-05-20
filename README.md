@@ -5,6 +5,7 @@ A tool for crawling Israeli websites, storing news articles and performing senti
 - Contains a GUI (Run frontend.py) showing outputs for Analysis of articles from ynet website, in context of Israel's 2019 Elections
 
 * Currently fully working for ynet.co.il
+
 Requirments:
 - Python 3.7
 - Packages Installed:
