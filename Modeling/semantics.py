@@ -23,23 +23,21 @@ def parse_articles(path):
 
 # Train Word2Vec model, save it to bin file
 def train(model_name, sentences):
-    # train model
     model = Word2Vec(size=200, window=5, min_count=2, workers=16)
     t = time()
     model.build_vocab(sentences)
     print('Time to build vocab: {} mins'.format(round((time() - t) / 60, 2)))
-    model.train(sentences, total_examples=len(sentences), epochs=20)
-    # save model
-    model.save(model_name)
+    model.train(sentences, total_examples=len(sentences), epochs=50)
+    model.save(model_name+'.bin')
 
 
 # test prediction of model for one word
 def test(model_name, target_word):
-    # load model
     new_model = Word2Vec.load(model_name + '.bin')
     similar = new_model.wv.most_similar(positive=target_word)
     print(similar)
 
 
-sents = parse_articles('C:\\Users\\ronel\\Desktop\\IsraeliMediaTendency\\ynet')
-train('ynetAllTime', sents)
+# sents = parse_articles('C:\\Users\\ronel\\Desktop\\IsraeliMediaTendency\\ynet')
+# train('ynetAllTime', sents)
+test('ynetAllTime','נתניהו')
