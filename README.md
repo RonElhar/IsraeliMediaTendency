@@ -12,6 +12,8 @@ Requirments:
   * Newspaper3k
   * Beautiful Soup 4.4.0
   * gensim
+  * keras
+  * numpy
 
 OS: Windows 10 x64
 
@@ -20,3 +22,4 @@ Credits:
 * Gensim https://radimrehurek.com/gensim/index.html
 * Beautiful Soup https://www.crummy.com/software/BeautifulSoup/bs4/doc/
 * Newspaper3k https://newspaper.readthedocs.io/en/latest/
+* Neural Sentiment Analyzer for Modern Hebrew https://github.com/omilab/Neural-Sentiment-Analyzer-for-Modern-Hebrew

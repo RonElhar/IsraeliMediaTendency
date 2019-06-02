@@ -68,7 +68,7 @@ def get_sentence_similarity(sentence):
 # Load the model of site from certain period
 def load_model(site, period):
     global model
-    model = Word2Vec.load(site + period + '.bin')
+    model = Word2Vec.load('models\\' + site + period + '.bin')
 
 
 model = None

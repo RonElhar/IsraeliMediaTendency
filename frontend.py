@@ -3,11 +3,17 @@ from tkinter import *
 from tkinter.ttk import *
 from parties_dictionary import *
 from backend import *
+from tkinter import messagebox
 
 
 # Dictionary window implementation
 def open_dictionary():
     def chose_word():
+        print(listbox.curselection())
+        if listbox.curselection() == ():
+            messagebox.showerror("Selection error", "Please select a phrase in order to continue")
+            dictionary_window.lift()
+            return
         similar_text.set(listbox.get(listbox.curselection()))
         print(similar_text.get())
         dictionary_window.destroy()
@@ -52,6 +58,10 @@ def chose_period(var, *args):
 
 # Event handler for showing similar words for the input text
 def show_similar():
+    if similar_text.get() == "":
+        messagebox.showerror("Similarity select",
+                             "Please write a phrase in the free text input box to show similar words")
+        return
     similar = get_sentence_similarity(similar_text.get())
     text_box.config(state=NORMAL)
     text_box.delete('1.0', END)
@@ -75,6 +85,18 @@ def show_relations():
         text_box.insert(END, str(i) + '. ' + t[0] + '\n')
         i += 1
     text_box.config(state=DISABLED)
+
+
+def show_sentiment():
+    with open('statistics\\' + party_variable2.get() + '-' + period_variable.get().split(' ')[0] + '-Statistics') as f:
+        lines = f.readlines()
+        text_box.config(state=NORMAL)
+        text_box.delete('1.0', END)
+        text_box.insert(END, 'Showing ynet sentiment to \'' + party_variable2.get() + '\' party \n')
+        for line in lines:
+            if not "Neutral" in line:
+                text_box.insert(END, line)
+        text_box.config(state=DISABLED)
 
 
 '''
@@ -101,20 +123,25 @@ party_variable.set(choices[0])
 choose_party_c = Combobox(master=root, values=choices, textvariable=party_variable)
 show_relations_b = Button(master=root, text="View Relations", command=show_relations)
 
+party_variable2 = StringVar(root)
+party_variable2.set(choices[0])
+choose_party_c2 = Combobox(master=root, values=choices, textvariable=party_variable2)
+show_sentiment_b = Button(master=root, text="View Sentiment", command=show_sentiment)
+
 similar_text = StringVar()
 similar_words_e = Entry(master=root, width=22, textvariable=similar_text)
 similar_words_b = Button(master=root, text="View Similar", command=show_similar)
 choose_from_dict_b = Button(master=root, text="Choose From Elections dictionary", command=open_dictionary)
 
 frame = Frame(root)
-text_box = Text(master=frame, width=40, state=DISABLED)
+text_box = Text(master=frame, width=50, state=DISABLED)
 text_box.pack(side="left", fill="y")
 scrollbar = Scrollbar(frame, orient="vertical")
 scrollbar.config(command=text_box.yview)
 scrollbar.pack(side="right", fill="y")
 
-Label(master=root, text="Choose Site").grid(row=0, column=0)
-choose_site_c.grid(row=0, column=1)
+# Label(master=root, text="Choose Site").grid(row=0, column=0)
+# choose_site_c.grid(row=0, column=1)
 
 Label(master=root, text="Choose Period").grid(row=1, column=0)
 choose_period_c.grid(row=1, column=1)
@@ -124,15 +151,20 @@ Label(master=root, text="Choose Party").grid(row=3, column=0)
 choose_party_c.grid(row=3, column=1)
 show_relations_b.grid(row=3, column=2)
 
-Label(master=root, text="~~~~~~~~~~~~~Similar Words Feature~~~~~~~~~~~~~~~").grid(row=4, columnspan=3)
-Label(master=root, text="Free Text").grid(row=5, column=0)
-similar_words_e.grid(row=5, column=1)
-similar_words_b.grid(row=5, column=2, rowspan=2)
-Label(master=root, text="OR").grid(row=6, column=0)
-choose_from_dict_b.grid(row=6, column=1, columnspan=1)
+Label(master=root, text="~~~~~~~~~~~~~Parties Semantics Feature~~~~~~~~~~~~~").grid(row=4, columnspan=3)
+Label(master=root, text="Choose Party").grid(row=5, column=0)
+choose_party_c2.grid(row=5, column=1)
+show_sentiment_b.grid(row=5, column=2)
 
-Label(master=root, text="Results:").grid(row=7, column=0)
-frame.grid(row=8, column=0, rowspan=3, columnspan=3)
+Label(master=root, text="~~~~~~~~~~~~~Similar Words Feature~~~~~~~~~~~~~~~").grid(row=6, columnspan=3)
+Label(master=root, text="Free Text").grid(row=7, column=0)
+similar_words_e.grid(row=7, column=1)
+similar_words_b.grid(row=7, column=2, rowspan=2)
+Label(master=root, text="OR").grid(row=8, column=0)
+choose_from_dict_b.grid(row=8, column=1, columnspan=1)
+
+Label(master=root, text="Results:").grid(row=9, column=0)
+frame.grid(row=10, column=0, rowspan=3, columnspan=3)
 
 if __name__ == '__main__':
     load_model(site_variable.get(), period_variable.get().replace(' ', ''))
