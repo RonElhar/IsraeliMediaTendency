@@ -23,11 +23,11 @@ def parse_articles(path):
 
 # Train Word2Vec model, save it to bin file
 def train(model_name, sentences):
-    model = Word2Vec(size=150, window=5, min_count=2, workers=16)
+    model = Word2Vec(size=200, window=5, min_count=2, workers=16)
     t = time()
     model.build_vocab(sentences)
     print('Time to build vocab: {} mins'.format(round((time() - t) / 60, 2)))
-    model.train(sentences, total_examples=len(sentences), epochs=10)
+    model.train(sentences, total_examples=len(sentences), epochs=50)
     model.save(model_name + '.bin')
 
 
