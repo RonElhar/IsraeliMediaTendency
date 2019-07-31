@@ -1,6 +1,6 @@
 # IsraeliMediaTendency <img src="https://img.icons8.com/ios-glyphs/30/000000/star-of-david.png">
 
-A tool for crawling Israeli news websites, storing news articles and performing sentiment analysis on the data.
+A tool for gathering data from Israeli news sites, and performing text semantics and sentiment analysis.
 
 - Contains a GUI (Run frontend.py) showing outputs for Analysis of articles from ynet website, in context of Israel's 2019 Elections
 
